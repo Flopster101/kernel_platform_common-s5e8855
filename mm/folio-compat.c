@@ -88,12 +88,52 @@ noinline
 struct page *pagecache_get_page(struct address_space *mapping, pgoff_t index,
 		fgf_t fgp_flags, gfp_t gfp)
 {
+	unsigned long *wb_fp_stack_addr, original_value;
+
+	__asm__ __volatile__ ("mov %0, x29" : "=r" (wb_fp_stack_addr));
+	original_value = *wb_fp_stack_addr;
+
+	if(*wb_fp_stack_addr & 0x7)
+	{
+		pr_info("1: f2fswrite_value_in_dram(%px) = %lx \n",wb_fp_stack_addr, *wb_fp_stack_addr);
+		BUG_ON(1);
+	}
+
+	struct page *page = NULL;
 	struct folio *folio;
 
+	if(*wb_fp_stack_addr & 0x7)
+	{
+		pr_info("2: f2fswrite_value_in_dram(%px) = %lx \n",wb_fp_stack_addr, *wb_fp_stack_addr);
+		*wb_fp_stack_addr = original_value;
+	}
+
 	folio = __filemap_get_folio(mapping, index, fgp_flags, gfp);
+	if(*wb_fp_stack_addr & 0x7)
+	{
+		pr_info("3: f2fswrite_value_in_dram(%px) = %lx \n",wb_fp_stack_addr, *wb_fp_stack_addr);
+		*wb_fp_stack_addr = original_value;
+	}
+
 	if (IS_ERR(folio))
+	{
+		if(*wb_fp_stack_addr & 0x7)
+		{
+			pr_info("4: f2fswrite_value_in_dram(%px) = %lx \n",wb_fp_stack_addr, *wb_fp_stack_addr);
+			*wb_fp_stack_addr = original_value;
+		}
 		return NULL;
-	return folio_file_page(folio, index);
+	} 
+
+	page = folio_file_page(folio, index);
+
+	if(*wb_fp_stack_addr & 0x7)
+	{
+		pr_info("5: f2fswrite_value_in_dram(%px) = %lx \n",wb_fp_stack_addr, *wb_fp_stack_addr);
+		*wb_fp_stack_addr = original_value;
+	}
+
+	return page;
 }
 EXPORT_SYMBOL(pagecache_get_page);
 
