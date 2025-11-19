@@ -67,6 +67,7 @@ DO_GKI_ONLY=0
 DO_LTO_FULL=0
 DO_ZIP=1
 DO_TAR=1
+DO_KSU=0
 DEFCONFIG=$DEFAULT_DEFCONFIG
 
 ## Parse arguments
@@ -97,7 +98,17 @@ for arg in "$@"; do
         echo "WARNING: Full LTO is VERY resource heavy and may take a long time to compile"
         DO_LTO_FULL=1
     fi
+    if [[ "$arg" == *k* ]]; then
+        echo "INFO: KernelSU argument passed, a KernelSU build will be made"
+        DO_KSU=1
+    fi
 done
+
+# Set kernel variant based on arguments
+if [ "$DO_KSU" == "1" ]; then
+    KERNEL_VARIANT="KSUNext"
+    KERNEL_VARIANT_SHORT="KN"
+fi
 
 echo -e "\nINFO: Build info:
 - Device: $DEVICE ($CODENAME)

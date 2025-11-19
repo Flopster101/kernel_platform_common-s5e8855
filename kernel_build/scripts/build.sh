@@ -43,6 +43,7 @@ build() {
     fi
 
     FRAGMENTS="$([ "$DO_LTO_FULL" == "1" ] && echo "lto-full.config" || echo "lto-thin.config")"
+    [ "$DO_KSU" == "1" ] && FRAGMENTS="$FRAGMENTS ksu.config"
 
     # Generate defconfig
     echo "INFO: Generating defconfig..."
